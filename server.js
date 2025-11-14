@@ -105,7 +105,7 @@ app.delete('/remainder/setremainder/:remainder',async (req,res)=>{
     })
 })
 
-nodecron.schedule('30 7 * * *', () => {
+nodecron.schedule('30 7 * * *', async() => {
 
 
     const pool= await Connect()
