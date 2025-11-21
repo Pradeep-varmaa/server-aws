@@ -2,7 +2,8 @@ const express = require("express");
 const cors = require("cors");
 const nodecron = require("node-cron");
 const mailsend = require("./runJob.js");
-const { sql, Connect } = require("./mssql");
+const pool = require('./mysql.js'); 
+
 require("dotenv").config();
 
 const app = express();
@@ -20,29 +21,40 @@ app.post('/', (req, res) => {
 app.delete('/', (req, res) => {
     res.json({ msg: ' There is nothing that delete route' }).status(200) 
 })
-
 app.post("/remainder/setremainder", async (req, res) => {
+  try {
     const { remainder, link } = req.body;
-    const pool = await Connect();
-    await pool
-        .request()
-        .input("remainder", sql.VarChar, remainder)
-        .input("link", sql.VarChar, link)
-        .query("INSERT INTO Remainders (Activity, Link) VALUES (@remainder, @link)");
+
+    const sql = "INSERT INTO Remainders (Activity, Link) VALUES (?, ?)";
+    const values = [remainder, link];
+
+    await pool.query(sql, values);
 
     res.json({ msg: "Task Saved", status: 200 });
+
+  } catch (err) {
+    console.error("MySQL Insert Error:", err);
+    res.status(500).json({ error: "Database Insert Error" });
+  }
 });
+
 
 app.get("/remainder/getremainder", async (req, res) => {
-    const pool = await Connect();
-    const result = await pool.request().query("SELECT * FROM Remainders");
-    res.json(result.recordset);
+  try {
+    const [rows] = await pool.query("SELECT * FROM boys");
+
+    res.json(rows);
+
+  } catch (err) {
+    console.error("MySQL Select Error:", err);
+    res.status(500).json({ error: "Database Fetch Error" });
+  }
 });
 
+
 nodecron.schedule(
-    "52 16 * * *",
+    "20 18 * * *",
     () => {
-        console.log("Running 7 PM IST Cron Job...");
         mailsend();
     },
     { timezone: "Asia/Kolkata" }

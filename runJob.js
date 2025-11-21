@@ -1,19 +1,16 @@
-const { Connect } = require("./mssql");
-const { connectMail } = require("./nodemailer");
+const pool = require('./mysql.js'); 
+const { connectMail } = require("./nodemailer.js");
 
 async function mailsend() {
     try {
-        const pool = await Connect();
-        const result = await pool.request().query("SELECT * FROM Remainders");
-
-        const rows = result.recordset;
+        const [rows] = await pool.query("SELECT * FROM boys");
 
         const tableitems = rows
             .map(
                 (el, index) => `
             <tr style = " text-align:center;">
                 <td>${index + 1}</td>
-                <td>${el.Activity}</td>
+                <td>${el.Name}</td>
             </tr>`
             )
             .join("");
@@ -21,8 +18,8 @@ async function mailsend() {
         const transport = await connectMail();
 
         const msgtext = {
-            from: process.env.Email_id,
-            to: "ppvarmajobs@gmail.com",
+            from: `Remainder-App <${process.env.Email_id}>`,
+            to: "21PA1a0278@VISHNU.EDU.IN",
             subject: "Un-completed tasks today",
             html: `
             <h4>Tasks you must complete before sleeping</h4>
