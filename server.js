@@ -53,7 +53,7 @@ app.get("/remainder/getremainder", async (req, res) => {
 
 
 nodecron.schedule(
-    "20 18 * * *",
+    "0 19 * * *",
     () => {
         mailsend();
     },
